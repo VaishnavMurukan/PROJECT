@@ -1,0 +1,2 @@
+# Requirements for demo script
+requests==2.31.0
