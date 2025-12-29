@@ -1,5 +1,5 @@
 from pydantic import BaseModel, HttpUrl, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
 
@@ -36,7 +36,7 @@ class SentimentAnalysisResult(BaseModel):
     sentiment_percentages: Dict[str, float]
     average_confidence: float
     predictions: List[SentimentPrediction]
-    data_quality: Dict[str, any]
+    data_quality: Dict[str, Any]
     message: Optional[str] = None
 
 class TrainingData(BaseModel):

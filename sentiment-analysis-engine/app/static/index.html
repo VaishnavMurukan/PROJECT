@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn:hover, .tab-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 .icon {
+            font-size: 1.5rem;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .sentiment-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        
+        .sentiment-positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .sentiment-negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .sentiment-neutral {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .prediction-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .prediction-text {
+            color: #333;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .prediction-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .confidence {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .probabilities {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .prob-bar {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .prob-bar-fill {
+            height: 8px;
+            border-radius: 4px;
+            min-width: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 30px;
+        }
+        
+        .chart-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+        }
+        
+        .chart-bar-fill {
+            width: 60px;
+            border-radius: 8px 8px 0 0;
+            transition: height 0.5s ease;
+        }
+        
+        .chart-bar-label {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .chart-bar-value {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            color: white;
+            margin-top: 15px;
+            display: inline-flex;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-healthy {
+            background: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+        
+        .status-unhealthy {
+            background: #dc3545;
+            box-shadow: 0 0 10px #dc3545;
+        }
+        
+        .api-section {
+            display: none;
+        }
+        
+        .api-section.active {
+            display: block;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Sentiment Analysis Engine</h1>
+            <p>Universal API-Based Sentiment Analysis for Any Platform</p>
+            <div class="health-status" id="healthStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking...</span>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('text')">📝 Analyze Text</button>
+            <button class="tab-btn" onclick="switchTab('api')">🔗 Analyze from API</button>
+        </div>
+        
+        <!-- Text Analysis Tab -->
+        <div class="api-section active" id="textTab">
+            <div class="card">
+                <h2><span class="icon">📝</span> Analyze Text Sentiment</h2>
+                <p style="color: #666; margin-bottom: 15px;">Enter one or more texts (one per line) to analyze their sentiment.</p>
+                
+                <textarea id="textInput" placeholder="Enter text to analyze...&#10;&#10;Example:&#10;I love this product! It's amazing.&#10;This is terrible, I'm very disappointed.&#10;The weather is okay today."></textarea>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="analyzeText()">🔍 Analyze Sentiment</button>
+                    <button class="btn btn-secondary" onclick="clearText()">Clear</button>
+                </div>
+                
+                <div class="loading" id="textLoading">
+                    <div class="spinner"></div>
+                    <p>Analyzing sentiment...</p>
+                </div>
+                
+                <div class="error" id="textError"></div>
+                
+                <div class="results hidden" id="textResults">
+                    <h3>Analysis Results</h3>
+                    <div class="stats-grid" id="statsGrid"></div>
+                    <div class="chart-container" id="chartContainer"></div>
+                    <h3 style="margin-top: 30px;">Individual Predictions</h3>
+                    <div id="predictions"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Analysis Tab -->
+        <div class="api-section" id="apiTab">
+            <div class="card">
+                <h2><span class="icon">🔗</span> Analyze from External API</h2>
+                <p style="color: #666; margin-bottom: 15px;">Fetch and analyze data from any REST API endpoint.</p>
+                
+                <div class="input-group">
+                    <label>API URL</label>
+                    <input type="url" id="apiUrl" placeholder="http://localhost:8000/public/posts">
+                </div>
+                
+                <div class="input-group">
+                    <label>Data Type</label>
+                    <input type="text" id="dataType" value="posts" placeholder="posts, comments, reviews">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="analyzeApi()">🔍 Fetch & Analyze</button>
+                </div>
+                
+                <div class="loading" id="apiLoading">
+                    <div class="spinner"></div>
+                    <p>Fetching and analyzing data...</p>
+                </div>
+                
+                <div class="error" id="apiError"></div>
+                
+                <div class="results hidden" id="apiResults">
+                    <h3>Analysis Results</h3>
+                    <div class="stats-grid" id="apiStatsGrid"></div>
+                    <div class="chart-container" id="apiChartContainer"></div>
+                    <h3 style="margin-top: 30px;">Individual Predictions</h3>
+                    <div id="apiPredictions"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '';  // Same origin
+        
+        // Check health on load
+        document.addEventListener('DOMContentLoaded', checkHealth);
+        
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                
+                if (data.status === 'healthy') {
+                    statusDot.className = 'status-dot status-healthy';
+                    statusText.textContent = `Healthy | Model: ${data.model_loaded ? 'Loaded' : 'Not Loaded'}`;
+                } else {
+                    statusDot.className = 'status-dot status-unhealthy';
+                    statusText.textContent = 'Unhealthy';
+                }
+            } catch (error) {
+                document.getElementById('statusDot').className = 'status-dot status-unhealthy';
+                document.getElementById('statusText').textContent = 'Connection Error';
+            }
+        }
+        
+        function switchTab(tab) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update sections
+            document.querySelectorAll('.api-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(`${tab}Tab`).classList.add('active');
+        }
+        
+        async function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                showError('textError', 'Please enter some text to analyze.');
+                return;
+            }
+            
+            const texts = text.split('\n').filter(t => t.trim());
+            
+            showLoading('textLoading', true);
+            hideError('textError');
+            document.getElementById('textResults').classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/analyze-texts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(texts)
+                });
+                
+                if (!response.ok) throw new Error('Analysis failed');
+                
+                const data = await response.json();
+                displayResults(data, 'text');
+            } catch (error) {
+                showError('textError', `Error: ${error.message}`);
+            } finally {
+                showLoading('textLoading', false);
+            }
+        }
+        
+        async function analyzeApi() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const dataType = document.getElementById('dataType').value.trim();
+            
+            if (!apiUrl) {
+                showError('apiError', 'Please enter an API URL.');
+                return;
+            }
+            
+            showLoading('apiLoading', true);
+            hideError('apiError');
+            document.getElementById('apiResults').classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_api: apiUrl,
+                        data_type: dataType,
+                        language: 'en'
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Analysis failed');
+                
+                const data = await response.json();
+                displayResults(data, 'api');
+            } catch (error) {
+                showError('apiError', `Error: ${error.message}`);
+            } finally {
+                showLoading('apiLoading', false);
+            }
+        }
+        
+        function displayResults(data, prefix) {
+            const resultsDiv = document.getElementById(`${prefix}Results`);
+            const statsGrid = document.getElementById(`${prefix === 'text' ? '' : prefix}StatsGrid`);
+            const chartContainer = document.getElementById(`${prefix === 'text' ? '' : prefix}ChartContainer`);
+            const predictionsDiv = document.getElementById(`${prefix === 'text' ? '' : prefix}Predictions`);
+            
+            // Stats
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${data.total_samples}</div>
+                    <div class="stat-label">Total Samples</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.analyzed_samples}</div>
+                    <div class="stat-label">Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(data.average_confidence * 100).toFixed(1)}%</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+            `;
+            
+            // Chart
+            const maxCount = Math.max(...Object.values(data.sentiment_distribution)) || 1;
+            const colors = {
+                positive: '#28a745',
+                negative: '#dc3545',
+                neutral: '#ffc107'
+            };
+            
+            chartContainer.innerHTML = Object.entries(data.sentiment_distribution).map(([sentiment, count]) => {
+                const height = (count / maxCount) * 150;
+                const percentage = data.sentiment_percentages[sentiment] || 0;
+                return `
+                    <div class="chart-bar">
+                        <div class="chart-bar-fill" style="background: ${colors[sentiment]}; height: ${height}px;"></div>
+                        <div class="chart-bar-label">${sentiment}</div>
+                        <div class="chart-bar-value">${count} (${percentage.toFixed(1)}%)</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Predictions
+            predictionsDiv.innerHTML = data.predictions.map(pred => `
+                <div class="prediction-card">
+                    <div class="prediction-text">"${pred.text.substring(0, 200)}${pred.text.length > 200 ? '...' : ''}"</div>
+                    <div class="prediction-meta">
+                        <span class="sentiment-badge sentiment-${pred.sentiment}">${pred.sentiment}</span>
+                        <span class="confidence">Confidence: ${(pred.confidence * 100).toFixed(1)}%</span>
+                        <div class="probabilities">
+                            ${Object.entries(pred.probabilities).map(([sent, prob]) => `
+                                <div class="prob-bar">
+                                    <span>${sent}:</span>
+                                    <div class="prob-bar-fill" style="background: ${colors[sent]}; width: ${prob * 50}px;"></div>
+                                    <span>${(prob * 100).toFixed(0)}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            resultsDiv.classList.remove('hidden');
+        }
+        
+        function clearText() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('textResults').classList.add('hidden');
+            hideError('textError');
+        }
+        
+        function showLoading(id, show) {
+            document.getElementById(id).style.display = show ? 'block' : 'none';
+        }
+        
+        function showError(id, message) {
+            const errorDiv = document.getElementById(id);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+    </script>
+</body>
+</html>

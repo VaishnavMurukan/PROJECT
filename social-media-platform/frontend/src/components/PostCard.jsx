@@ -82,6 +82,29 @@ const PostCard = ({ post, currentUser, onUpdate }) => {
         <p>{post.content}</p>
       </div>
 
+      {/* Media Gallery */}
+      {post.media && post.media.length > 0 && (
+        <div className={`post-media-gallery ${post.media.length === 1 ? 'single' : post.media.length === 2 ? 'double' : 'multi'}`}>
+          {post.media.map((media, index) => (
+            <div key={index} className="media-item">
+              {media.media_type === 'image' ? (
+                <img 
+                  src={`http://localhost:8000${media.url}`} 
+                  alt="Post media" 
+                  onClick={() => window.open(`http://localhost:8000${media.url}`, '_blank')}
+                />
+              ) : (
+                <video 
+                  src={`http://localhost:8000${media.url}`} 
+                  controls
+                  preload="metadata"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="post-actions">
         <button 
           onClick={() => handleReaction(true)}

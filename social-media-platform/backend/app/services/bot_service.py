@@ -7,6 +7,7 @@ from ..models.bot import Bot, BotProfile, BotInteractionLog, EmotionalBias
 from ..models.post import Post
 from ..models.comment import Comment
 from ..models.reaction import Reaction
+from .ai_comment_generator import generate_comment_for_bot
 
 # Predefined comment templates based on emotional bias
 COMMENT_TEMPLATES = {
@@ -42,18 +43,25 @@ COMMENT_TEMPLATES = {
     ]
 }
 
+# Personality bot names that should always respond to all posts
+PERSONALITY_BOT_NAMES = ['Optimistic_Bot', 'Critical_Bot', 'Neutral_Bot', 'Sarcastic_Bot', 'Techie_Bot', 'Minimal_Bot']
+
 class BotEngine:
     """Rule-based bot interaction engine"""
     
     def __init__(self, db: Session):
         self.db = db
     
+    def is_personality_bot(self, bot: Bot) -> bool:
+        """Check if bot is a personality bot that should respond to all posts"""
+        return bot.name in PERSONALITY_BOT_NAMES
+    
     def is_universal_bot(self, bot: Bot) -> bool:
         """Check if bot is a universal bot (interacts with everything)"""
         if not bot.profile or not bot.profile.interests:
             return False
         interests = bot.profile.interests.lower()
-        return 'universal' in interests or 'all' in interests or 'everything' in interests
+        return 'universal' in interests or 'all' in interests or 'everything' in interests or self.is_personality_bot(bot)
     
     def calculate_relevance_score(self, bot: Bot, post: Post) -> float:
         """
@@ -110,15 +118,31 @@ class BotEngine:
         adjusted_probability = probability * (0.3 + relevance_score * 0.7)
         return random.random() < adjusted_probability
     
-    def get_emotional_comment(self, bot: Bot) -> str:
-        """Generate a comment based on bot's emotional bias"""
+    def get_emotional_comment(self, bot: Bot, post_content: str = "") -> str:
+        """Generate a comment based on bot's personality using AI"""
         if not bot.profile:
-            emotional_bias = EmotionalBias.NEUTRAL
+            emotional_bias = "neutral"
+            interests = ""
+            profession = ""
         else:
-            emotional_bias = bot.profile.emotional_bias
+            emotional_bias = bot.profile.emotional_bias.value if bot.profile.emotional_bias else "neutral"
+            interests = bot.profile.interests or ""
+            profession = bot.profile.profession or ""
         
-        templates = COMMENT_TEMPLATES.get(emotional_bias, COMMENT_TEMPLATES[EmotionalBias.NEUTRAL])
-        return random.choice(templates)
+        # Use AI to generate contextual comment based on personality
+        try:
+            return generate_comment_for_bot(
+                post_content=post_content,
+                bot_interests=interests,
+                emotional_bias=emotional_bias,
+                profession=profession
+            )
+        except Exception as e:
+            print(f"AI comment generation failed for bot {bot.name}: {e}")
+            # Fallback to template-based comments
+            bias_enum = bot.profile.emotional_bias if bot.profile else EmotionalBias.NEUTRAL
+            templates = COMMENT_TEMPLATES.get(bias_enum, COMMENT_TEMPLATES[EmotionalBias.NEUTRAL])
+            return random.choice(templates)
     
     def should_like_or_dislike(self, bot: Bot, relevance_score: float) -> Optional[bool]:
         """
@@ -208,8 +232,10 @@ class BotEngine:
         ).first()
         
         if not existing_comment and bot.profile:
-            if self.should_interact(bot.profile.comment_probability, relevance_score):
-                comment_text = self.get_emotional_comment(bot)
+            # Personality bots always comment, others use probability
+            should_comment = self.is_personality_bot(bot) or self.should_interact(bot.profile.comment_probability, relevance_score)
+            if should_comment:
+                comment_text = self.get_emotional_comment(bot, post.content)
                 comment = Comment(
                     post_id=post.id,
                     bot_id=bot.id,

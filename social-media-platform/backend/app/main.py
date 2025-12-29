@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 from .database import engine, Base
-from .routers import auth, posts, comments, reactions, bots, public_api
+from .routers import auth, posts, comments, reactions, bots, public_api, uploads
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Create uploads directory
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = FastAPI(
     title="Social Media Platform API",
@@ -28,6 +34,7 @@ app.include_router(comments.router)
 app.include_router(reactions.router)
 app.include_router(bots.router)
 app.include_router(public_api.router)
+app.include_router(uploads.router)
 
 @app.get("/")
 def read_root():

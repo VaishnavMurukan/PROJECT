@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import List
+from pathlib import Path
 from .config import settings
 from .models.schemas import (
     DataSourceRequest,
@@ -33,14 +36,13 @@ sentiment_service = SentimentAnalysisService()
 model = SentimentModel()
 preprocessor = TextPreprocessor()
 
+# Static files directory
+STATIC_DIR = Path(__file__).parent / "static"
+
 @app.get("/")
 def read_root():
-    return {
-        "message": "Universal Sentiment Analysis Engine",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "description": "Platform-independent sentiment analysis via API"
-    }
+    """Serve the web UI"""
+    return FileResponse(STATIC_DIR / "index.html")
 
 @app.get("/health", response_model=HealthResponse)
 def health_check():
