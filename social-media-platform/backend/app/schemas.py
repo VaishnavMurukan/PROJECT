@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_serializer
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 # Enums
@@ -75,6 +75,13 @@ class PostResponse(BaseModel):
     dislike_count: int = 0
     comment_count: int = 0
     
+    @field_serializer('created_at')
+    def serialize_dt(self, dt: datetime, _info):
+        # Ensure timezone-aware datetime for proper client-side handling
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
+    
     class Config:
         from_attributes = True
 
@@ -91,6 +98,13 @@ class CommentResponse(BaseModel):
     created_at: datetime
     author_name: str  # Username or bot name
     is_bot: bool
+    
+    @field_serializer('created_at')
+    def serialize_dt(self, dt: datetime, _info):
+        # Ensure timezone-aware datetime for proper client-side handling
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
     
     class Config:
         from_attributes = True

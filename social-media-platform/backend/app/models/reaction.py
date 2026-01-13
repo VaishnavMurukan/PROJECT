@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from ..database import Base
 
 class Reaction(Base):
@@ -11,7 +11,7 @@ class Reaction(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for bot reactions
     bot_id = Column(Integer, ForeignKey("bots.id"), nullable=True)  # For bot-generated reactions
     is_like = Column(Boolean, nullable=False)  # True for like, False for dislike
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     post = relationship("Post", back_populates="reactions")

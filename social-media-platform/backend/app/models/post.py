@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import enum
 from ..database import Base
 
@@ -16,8 +16,8 @@ class Post(Base):
     content = Column(Text, nullable=False)
     topic = Column(String, index=True)  # For bot matching
     keywords = Column(String)  # Comma-separated keywords
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     user = relationship("User", back_populates="posts")
@@ -32,7 +32,7 @@ class Media(Base):
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
     media_type = Column(Enum(MediaType), nullable=False)
     url = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     post = relationship("Post", back_populates="media")

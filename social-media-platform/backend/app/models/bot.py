@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import enum
 from ..database import Base
 
@@ -15,7 +15,7 @@ class Bot(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     profile = relationship("BotProfile", back_populates="bot", uselist=False, cascade="all, delete-orphan")
@@ -60,7 +60,7 @@ class BotInteractionLog(Base):
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
     action_type = Column(String, nullable=False)  # "like", "dislike", "comment"
     relevance_score = Column(Float)  # How relevant was the post to bot's interests
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     bot = relationship("Bot", back_populates="interaction_logs")

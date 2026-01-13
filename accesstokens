@@ -4,3 +4,44 @@ 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        -   distilbert-base-uncased-finetun
 
 
 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   - google/flan-t5-small
+
+
+start_all.bat
+
+
+
+Positive Sentiment Reviews
+
+“This phone is amazing! The battery lasts all day and the camera quality is excellent.”
+
+“I’m very happy with this laptop. It’s fast, lightweight, and perfect for my work.”
+
+“Great product for the price. Totally worth buying!”
+
+“The sound quality of these headphones is fantastic. Very comfortable to wear.”
+
+“Delivery was quick and the packaging was neat. Highly recommended.”
+
+🔹 Negative Sentiment Reviews
+
+“Very disappointed. The product stopped working after just two weeks.”
+
+“Poor quality material. It feels cheap and breaks easily.”
+
+“Battery drains too fast and the performance is terrible.”
+
+“Not worth the money at all. I regret buying this.”
+
+“Customer service was unhelpful and slow to respond.”
+
+🔹 Neutral Sentiment Reviews
+
+“The product is okay. It works as described but nothing special.”
+
+“Average quality. Neither good nor bad.”
+
+“I received the product on time and it functions normally.”
+
+“It’s fine for basic use, but there are better options available.”
+
+“The design is simple and the performance is acceptable.”

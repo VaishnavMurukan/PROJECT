@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from ..database import Base
 
 class Comment(Base):
@@ -11,7 +11,7 @@ class Comment(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for bot comments
     bot_id = Column(Integer, ForeignKey("bots.id"), nullable=True)  # For bot-generated comments
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     post = relationship("Post", back_populates="comments")
